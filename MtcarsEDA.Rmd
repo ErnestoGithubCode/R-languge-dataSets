@@ -1,0 +1,120 @@
+---
+title: "Mtcars dataSet EDA"
+author: "by Ing.Ernesto Ibanez"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+# Mtcars a [32 11] dataSet. Mtcars EDA
+
+```{r,echo=FALSE}
+
+# Print the mtcars data set
+# mtcars
+names(mtcars)
+dim(mtcars)
+str(mtcars)
+rownames(mtcars)
+#view first six rows of mtcars dataset
+head(mtcars)
+```
+
+# The dataSet is a: data.frame with  32 obs. of 11 variables: with the TradeMarks of the 32 cars
+
+```{r,echo=FALSE}
+require(graphics)
+# pairs(mtcars, main = "mtcars data", gap = 1/4)
+coplot(mpg ~ disp | as.factor(cyl), data = mtcars,
+       panel = panel.smooth, rows = 1)
+## possibly more meaningful, e.g., for summary() or bivariate plots:
+mtcars2 <- within(mtcars, {
+   vs <- factor(vs, labels = c("V", "S"))
+   am <- factor(am, labels = c("automatic", "manual"))
+   cyl  <- ordered(cyl)
+   gear <- ordered(gear)
+   carb <- ordered(carb)
+})
+summary(mtcars2)
+
+```
+
+# Visualising with ggplot mpg vs. drat
+```{r,echo=FALSE}
+# Loading ggplot2 package
+library(ggplot2)
+	
+# Creating scatterplot with fitted values.
+# An additional function stst_smooth
+# is used for linear regression.
+mtcars_graph<-ggplot(mtcars, aes(x = log(mpg),
+							y = log(drat))) +
+					geom_point(aes(color = factor(gear))) +
+					stat_smooth(formula=y ~ x, method = "lm",
+								col = "#C42126",
+					se = FALSE, size = 1)
+
+# in above example lm is used for linear regression
+# and se stands for standard error.
+# Adding title with dynamic name
+mtcars_graph + labs(
+		title = "Relation between Mile per hours and drat",
+		subtitle = "Relationship break down by gear class",
+		caption = "Authors own computation"
+)
+
+```
+
+```{r,echo=FALSE}
+
+# 3D Scatterplot
+library(scatterplot3d)
+attach(mtcars)
+scatterplot3d(mpg, cyl, hp,main = "3D Scatterplot")
+
+```
+
+```{r,echo=FALSE}
+# Plot the matrices between
+# 4 variables giving 12 plots.
+
+# One variable with 3 others
+# and total 4 variables.
+pairs(~wt + mpg + disp + cyl, data = mtcars,
+main = "Scatterplot Matrix")
+
+```
+
+
+# Some Mtcars dataSet Histrograms-plots.
+```{r,echo=FALSE}
+# create histogram of values for mpg
+hist(mtcars$mpg,
+     col='steelblue',
+     main='Histogram',
+     xlab='mpg',
+     ylab='Frequency')
+
+# create boxplot of values for mpg
+boxplot(mtcars$mpg,
+        main='Distribution of mpg values',
+        ylab='mpg',
+        col='steelblue',
+        border='black')
+
+# create scatterplot of mpg vs. wt
+plot(mtcars$mpg, mtcars$wt,
+     col='steelblue',
+     main='Scatterplot',
+     xlab='mpg',
+     ylab='wt',
+     pch=19)
+
+sessionInfo()
+```

@@ -1,0 +1,173 @@
+---
+title: "gapminder Dataset EDA"
+author: "Ing. Ernesto Ibanez"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+
+# Exploratory Data Analysis in R of Global Data from GapMinder a [ 1704    6]
+GapMinder_Unfiltered is the dataset which has gdpPerCapita (Gross Domestic Product per Capita) across the countries in the globe collected over years dating 1950 to 2007.
+```{r,echo=FALSE}
+library(tidyverse)
+library(gapminder)
+library(ggthemes)
+library(rworldmap) ## plotting the data on World Map
+library(countrycode) ## Converting the country name to Country code
+library(dplyr) ## For manipulating, transforming, filtering, summarizing the data
+library(Hmisc)
+library(printr) 
+library(RColorBrewer) ## to chose different colors for the graph
+head(gapminder)
+names(gapminder)
+summary(gapminder)
+dim(gapminder)
+sum(complete.cases(gapminder)) ## No missing values found
+describe(gapminder)
+
+
+```
+
+# For the year 2007: What is the distribution of GDP per capita across all countries?
+```{r,echo=FALSE}
+
+gap2007 <- gapminder %>% filter(year == 2007)
+ggplot(data=gap2007, aes(gdpPercap)) + geom_histogram(fill = '#1ABC9C',  bins = 30)
+```
+
+# For the year 2007, how do the distributions differ across the different continents?
+```{r,echo=FALSE}
+ggplot(gap2007,aes(gdpPercap)) + geom_histogram(fill = '#1ABC9C', bins = 30)+ 
+  facet_wrap(~continent, scales='free') + stat_bin(bins = 10)
+                                                   
+```
+
+# For the year 2007: What are the top 10 countries with the largest GDP per capita?
+```{r,echo=FALSE}
+gap2007 %>% arrange(-gdpPercap) %>% head(10) %>% select(country, gdpPercap)
+```
+
+# Plot the GDP per capita for your country of origin for all years available.
+```{r,echo=FALSE}
+gapminder %>% filter(country =='Venezuela') %>%  ggplot(.,aes(x =year, y= gdpPercap)) +
+  geom_line(color ='#1ABC9C') + geom_point(color='#21618C')+
+  ggtitle("Gdp of Venezuela")
+```
+
+
+# What was the percent growth (or decline) in GDP per capita in 2007?
+```{r,echo=FALSE}
+gapminder %>% filter(country =='Venezuela') %>%  mutate(PercentGrowth= 
+                  (gdpPercap - lag(gdpPercap))*100/lag(gdpPercap)) %>% 
+  arrange(-PercentGrowth) %>% head(1)
+```
+
+# Where are the outliers?
+```{r,echo=FALSE}
+ggplot(gapminder,aes(x =continent, y= lifeExp)) +
+  geom_boxplot(outlier.color ='hotpink') + geom_jitter(position=position_jitter(width =0.1 ,height =0),alpha=1/4) 
+
+```
+
+
+# What has been the historical growth (or decline) in GDP per capita for your country?
+```{r,echo=FALSE}
+# gapminder_omit <- na.omit(gapminder) 
+gapminder %>% filter(country =='Venezuela') %>% 
+           mutate(PercentGrowth = (gdpPercap - lag(gdpPercap))*100/lag(gdpPercap)) %>% 
+           ggplot(.,aes(x=year, y=PercentGrowth)) + geom_line(color ='#1ABC9C',na.rm=TRUE) +              geom_point(color='#21618C',na.rm=TRUE)+
+   ggtitle("Change % Gdp of Venezuela")
+```
+
+```{r,echo=FALSE}
+library(ggplot2)
+gapminder_cleaned <- gapminder %>% 
+filter(year == "2007") %>% 
+mutate(
+  pop2 = pop + 1,
+  continent = case_when(
+    continent == "Oceania" ~ "Asia",
+    TRUE ~ as.character(continent)
+  ) %>% as.factor %>% 
+    fct_relevel("Asia", "Americas", "Europe", "Africa")
+) 
+
+(gapminder_plot <- ggplot(data = gapminder_cleaned, aes(x = gdpPercap, y = lifeExp)) +
+  annotate("text", x = 4000, y = 45, hjust = 0.5,
+           size = 85, color = "#999999",
+           label = "2007", alpha = .3,
+           family = "Helvetica Neue") +
+  geom_point(aes(size = pop, color = continent)) +
+  geom_point(aes(size = pop2), color = "black", shape = 21) +
+  scale_x_log10(breaks = c(500, 1000, 2000, 4000,
+                           8000, 16000, 32000, 64000)) +
+  scale_y_continuous(breaks = seq(0, 90, by = 10)) +
+  scale_color_manual(values = c("#F15772", "#7EEB03",
+                                "#FBE700", "#54D5E9"))  +
+  scale_size_continuous(range = c(1, 30)) +
+  guides()+
+  labs(x = "Income", y = "Life expectancy" ) +
+  theme_minimal() +
+  theme(
+    plot.margin = unit(rep(1, 4), "cm"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(size = 0.2, 
+                                    color = "#e5e5e5"),
+    axis.title.y = element_text(margin = margin(r = 15), 
+                                size = 11,
+                                family = "Arial"),
+    axis.title.x = element_text(margin = margin(t = 15), 
+                                size = 11,
+                                family = "Arial"),
+    axis.text = element_text(family = "Arial"),
+    axis.line = element_line(color = "#999999", 
+                             size = 0.2)
+  ) +
+  coord_cartesian(ylim = c(4.1, 86))+
+
+  annotate("segment", x = 0, xend = 2014, y = 46.9, yend = 46.9, 
+           color = "#606F7B", linetype = 2, size = .2) +
+  annotate("segment", x = 2014, xend = 2014, y = 0, yend = 46.9,
+           color = "#606F7B", linetype = 2, size = .2) +
+  annotate("text", x = 28200, y = 2, 
+           label = "per person (GDP/capita, PPP$ inflation-adjusted)",
+           size = 2.8, color = "#999999") +
+  annotate("text", x = 2304, y = 42, hjust = 0,
+           size = 3.5,
+           label = paste0("Nigeria had a life expectancy of\n",
+                          "46.9 years and an annual income of",
+                          "\n$2014 per year per person in 2007")) +
+  theme(
+    plot.margin = unit(rep(1, 4), "cm"),
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(size = 0.2, 
+                                    color = "#e5e5e5"),
+    axis.title.y = element_text(margin = margin(r = 15), 
+                                size = 11,
+                                family = "Arial"),
+    axis.title.x = element_text(margin = margin(t = 15), 
+                                size = 11,
+                                family = "Arial"),
+    axis.text = element_text(family = "Arial"),
+    axis.line = element_line(color = "#999999", size = 0.2)
+  ) +
+  coord_cartesian(ylim = c(4.1, 86)))
+
+``` 
+
+```{r,echo=FALSE}
+citation("gapminder")
+sessionInfo()
+
+```
+
+
+
+

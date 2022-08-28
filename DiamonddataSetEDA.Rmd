@@ -1,0 +1,112 @@
+---
+title: "The Diamonds dataSet EDA"
+author: "Ing. Ernesto Ibanez"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::robobook:
+    highlight: kate
+---
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+
+```
+
+# The diamonds dataset EDA in R.
+
+## It contains measurements on 10 different variables (like price, color, clarity, etc.) for 53,940 different diamonds [53940 10].
+
+# This tutorial explains how to explore, summarize, and visualise the diamonds dataset in R.
+
+# Load the diamonds data
+
+```{r, echo=FALSE}
+#load ggplot2 library
+library(ggplot2)
+
+diamonds
+#view first six rows of diamonds dataset
+head(diamonds)
+names(diamonds)
+#summarize diamonds dataset
+summary(diamonds)
+#display rows and columns
+dim(diamonds)
+str(diamonds)
+```
+
+# Visualise the diamonds Dataset
+
+We can also create some plots to visualize the values in the dataset.
+
+For example, we can create an histogram of the values for a certain variable:
+
+```{r, echo=FALSE}
+#create histogram of values for price
+ggplot(data=diamonds, aes(x=price)) +
+  geom_histogram(fill="steelblue", color="black",bins = 30) +
+  ggtitle("Histogram of Diamods Price Values")
+
+```
+
+# Create a scatterplot of any pairwise combination of variables:
+
+```{r, echo=FALSE}
+#create scatterplot of carat vs. price, using cut as color variable
+ggplot(data=diamonds, aes(x=carat, y=price, color=cut)) + 
+  geom_point()
+
+```
+
+# Create scatterplot of price, grouped by cut
+
+```{r, echo=FALSE}
+ggplot(data=diamonds, aes(x=cut, y=price)) + 
+  geom_boxplot(fill="steelblue")
+
+```
+
+
+```{r, echo=FALSE}
+ggplot(diamonds, aes(color,price)) + geom_boxplot(fill="steelblue")
+```
+
+
+```{r, echo=FALSE}
+ggplot(diamonds, aes(clarity,price)) + geom_boxplot(fill="steelblue")
+
+```
+
+# Plot histogram of diamond prices by cut
+
+```{r, echo=FALSE}
+by(diamonds$price, diamonds$cut, summary)
+ggplot(data = diamonds, aes(x = price)) + 
+  geom_histogram(binwidth = 250,fill="steelblue") + 
+  facet_wrap(~cut, scales = "free_y") + 
+  scale_x_continuous() + xlab('Price') + 
+  ylab('Frequency')
+
+```
+
+#Plot histogram of diamond prices by carat
+
+```{r, echo=FALSE}
+diamonds$price_per_carat <- diamonds$price / diamonds$carat
+
+ggplot(data = diamonds, aes(x = price_per_carat)) + 
+  geom_histogram(binwidth = 250, fill="steelblue") + 
+  facet_wrap(~cut, scales = "free_y") + 
+  xlab('Price per Carat') + 
+  ylab('Frequency')
+```
+
+
+# This session Summary
+
+```{r, echo=FALSE}
+
+sessionInfo()
+
+```
